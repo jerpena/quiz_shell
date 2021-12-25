@@ -10,6 +10,11 @@ quiz_dir=(quiz_keys/*)
 question_key=()
 answer_key=()
 q_index=-1
+q_count=0
+correct=0
+wrong=0
+no_response=0
+skip=0
 
 function display_menu {
     echo ""
@@ -35,4 +40,22 @@ function display_menu {
 	question_key+=("${line[0]}")
 	answer_key+=("${line[1]}")
     done < "$quiz_file"
+    # get number of questions from quiz file
+    target_questions=$(wc -l <$quiz_file | xargs)
 }
+
+function shuffle_questions {
+    local i=0
+    until ((i == $target_questions))
+    do
+        q_order+=($i)
+        ((i++))
+    done
+    echo ${q_order[@]}
+    shuffled_order=( $(shuf -n${target_questions} -e ${q_order[@]}) )
+}
+
+
+
+display_menu
+shuffle_questions
