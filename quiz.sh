@@ -55,7 +55,15 @@ function shuffle_questions {
     shuffled_order=( $(shuf -n${target_questions} -e ${q_order[@]}) )
 }
 
-
+function check_quiz_end {
+    if (($q_count < $target_questions)); then 
+        printf "On to the next question!\n\n"
+        sleep 1
+    else
+        printf "\nQuiz completed! Let's see how you did...\n"
+        sleep 1
+    fi
+}
 
 display_menu
 shuffle_questions
