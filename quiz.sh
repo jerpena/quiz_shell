@@ -57,13 +57,32 @@ function shuffle_questions {
 }
 
 function check_quiz_end {
-    if (($q_count < $target_questions))
-    then 
-        printf "On to the next question!\n\n"
+    if (($q_count < $target_questions)); then 
+        printf "\nOn to the next question!\n\n"
         sleep 1
-    else
-        printf "\nQuiz completed! Let's see how you did...\n"
-        sleep 1
+    elif (($q_count == $target_questions)); then 
+        printf "\nQuiz has ended! Let's see how you did..\n\n"
+        sleep 2
+        quiz_duration=$(($SECONDS - $quiz_timer))
+        if (($correct == $target_questions)); then
+            printf "\nAwesome! You got them all right in ${quiz_duration} seconds.\n\n"
+        elif (($no_response == $target_questions)); then 
+            printf "\nYou gave ${no_response} blank responses.\n\n"                
+        elif (($wrong == $target_questions)); then
+            printf "\nWomp Womp, You got them all wrong in ${quiz_duration} seconds.\n\n"
+        elif (($skip == $target_questions)); then 
+            printf "\nYou skipped all the questions.. uhhh?\n\n"             
+        else
+            wrong=$(($wrong + $noresponse))
+            printf "\nOut of (${target_questions} questions), you got "
+            (($wrong > 0)) && printf "${RED}(${wrong} wrong)${NC} and "
+            (($correct > 0)) && printf "${GREEN}(${correct} correct)${NC} "
+            if (($skip == 0)); then
+                printf "with no skips in a time of ${quiz_duration} seconds.\n "
+            elif (($skip >= 1)); then
+                printf "with ${skip} skips in a time of ${quiz_duration} seconds.\n"
+            fi
+        fi
     fi
 }
 
