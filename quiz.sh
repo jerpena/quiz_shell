@@ -67,5 +67,61 @@ function check_quiz_end {
     fi
 }
 
+function start_quiz {
+    until ((q_count == target_questions))
+    do
+        ((q_count++))
+        ((q_index++))
+        current_index=$( echo ${shuffled_order[$q_index]})
+        current_question="${question_key[$current_index]}"
+        current_answer="${answer_key[$current_index]}"
+
+        printf "(${q_count}) ${current_question}? "
+        echo -e -n "${GREEN}"
+        read response
+        echo -e -n "${NC}"
+        # disregard case in answer
+        shopt -s nocasematch
+            case $response in 
+            "$current_answer") 
+                printf "${GREEN}Awesome! That's the correct answer.${NC} " 
+                ((correct++))
+                check_quiz_end
+            ;; 
+            q) 
+                printf "\nExiting quiz...\n"
+                break
+            ;;
+            "skip")
+                ((skip++))
+                printf "Skipping question.."
+                if ((skip >= 3))
+                then 
+                    printf "You have skipped ${skip} times now.\n"
+                fi
+                check_quiz_end
+            ;;
+            *) 
+                if [[ -z ${response} ]]
+                then
+                    printf "You didn't provide an answer! "
+                    ((no_response++))
+                    ((wrong++))
+                        if (( no_response > 1 ))
+                        then
+                            printf "You have ${no_response} blank responses so far. \n"   
+                        fi
+                else
+                    ((wrong++))
+                        printf "${RED}That is incorrect...${NC}\n\n"
+                fi
+                check_quiz_end
+            ;;
+            esac
+    done
+}
+
 display_menu
 shuffle_questions
+quiz_timer=$SECONDS
+start_quiz
