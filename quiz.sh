@@ -36,9 +36,10 @@ function display_menu {
         esac
     done
     # loop through all lines of quiz file and split keys into arrays
-    while IFS="|" read -ra line; do
-	question_key+=("${line[0]}")
-	answer_key+=("${line[1]}")
+    while IFS="|" read -ra line
+    do
+        question_key+=("${line[0]}")
+        answer_key+=("${line[1]}")
     done < "$quiz_file"
     # get number of questions from quiz file
     target_questions=$(wc -l <$quiz_file | xargs)
@@ -56,7 +57,8 @@ function shuffle_questions {
 }
 
 function check_quiz_end {
-    if (($q_count < $target_questions)); then 
+    if (($q_count < $target_questions))
+    then 
         printf "On to the next question!\n\n"
         sleep 1
     else
