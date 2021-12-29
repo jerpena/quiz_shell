@@ -20,7 +20,7 @@ function display_menu {
     echo ""
     echo "QUIZZ SHELL"
     echo "_________________________"
-    echo "For answers that have multiple parts, separate them with a comma."
+    echo "If using the included quizzes separate answers that have multiple parts with (, )"
     echo  -e "Example: What are the 3 types of loops in bash scripting? ${GREEN}for, while, until${NC}"
     echo -e "\n"
 
@@ -43,6 +43,8 @@ function display_menu {
     done < "$quiz_file"
     # get number of questions from quiz file
     target_questions=$(wc -l <$quiz_file | xargs)
+    # add space between menu and questions
+    printf "\n"
 }
 
 function shuffle_questions {
@@ -52,7 +54,6 @@ function shuffle_questions {
         q_order+=($i)
         ((i++))
     done
-    echo ${q_order[@]}
     shuffled_order=( $(shuf -n${target_questions} -e ${q_order[@]}) )
 }
 
