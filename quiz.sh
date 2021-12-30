@@ -133,6 +133,7 @@ function start_quiz {
                 else
                     ((wrong++))
                         printf "${RED}That is incorrect...${NC}\n\n"
+                        "Correct answer is: " ${current_answer}
                 fi
                 check_quiz_end
             ;;
