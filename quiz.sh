@@ -54,7 +54,7 @@ function shuffle_questions {
         q_order+=( "$i" )
         (( i++ ))
     done
-    shuffled_order=( $(shuf -n "${target_questions}" -e "${q_order[@]}") )
+    mapfile -t shuffled_order <<< "$( shuf -n "$target_questions" -e "${q_order[@]}" )"
 }
 
 function check_quiz_end {
