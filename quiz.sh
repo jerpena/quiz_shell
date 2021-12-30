@@ -16,14 +16,15 @@ wrong=0
 no_response=0
 skip=0
 
-function display_menu {
-    echo ""
-    echo "QUIZZ SHELL"
-    echo "_________________________"
-    echo "If using the included quizzes separate answers that have multiple parts with (, )"
-    echo -e "Example: What are the 3 types of loops in bash scripting? ${GREEN}for, while, until${NC}"
-    echo -e "\n"
+function display_header {
+    clear -x
+    printf '%b' "\nQUIZ SHELL\n"
+    printf '%.s─' $(seq 1 "$(tput cols)")
+    printf "\nIf using the included quizzes separate answers that have multiple parts with ', '\n"
+    printf '%b' "Example: What are the 3 types of loops in bash scripting? ${GREEN}for, while, until${NC}\n\n"
+}
 
+function display_menu {
     echo 'Choose your quiz below (q to quit):'
     # select quiz and if anything other than the numbers of the files is chosen, exit script
     select opt in "${quiz_dir[@]}"
@@ -89,6 +90,7 @@ function check_quiz_end {
 function start_quiz {
     until (( q_count == target_questions ))
     do
+        display_header
         (( q_count++ ))
         (( q_index++ ))
         current_index="${shuffled_order[$q_index]}"
@@ -140,6 +142,7 @@ function start_quiz {
     done
 }
 
+display_header
 display_menu
 shuffle_questions
 quiz_timer=$SECONDS
