@@ -66,22 +66,21 @@ function check_quiz_end {
         sleep 2
         quiz_duration=$(( SECONDS - quiz_timer))
         if (( correct == target_questions )); then
-            printf "\nAwesome! You got them all right in ${quiz_duration} seconds.\n\n"
+            printf "\nAwesome! You got them all right in %s seconds.\n\n" "$quiz_duration"
         elif (( no_response == target_questions )); then 
-            printf "\nYou gave ${no_response} blank responses.\n\n"                
+            printf "\nYou gave %s blank responses.\n\n" "$no_response"                
         elif (( wrong ==  target_questions )); then
-            printf "\nWomp Womp, You got them all wrong in ${quiz_duration} seconds.\n\n"
+            printf "\nWomp Womp, You got them all wrong in %s seconds.\n\n" "$quiz_duration"
         elif (( skip ==  target_questions )); then 
             printf "\nYou skipped all the questions.. uhhh?\n\n"             
         else
-            wrong=$(( wrong + no_response ))
-            printf "\nOut of (${target_questions} questions), you got "
-            (( wrong > 0 )) && printf "${RED}(${wrong} wrong)${NC} and "
-            (( correct > 0 )) && printf "${GREEN}(${correct} correct)${NC} "
+            printf "\nOut of (%s questions), you got " "$target_questions"
+            (( wrong > 0 )) && printf '%b' "${RED}($wrong wrong)${NC} and " 
+            (( correct > 0 )) && printf '%b' "${GREEN}(${correct} correct)${NC} "
             if (( skip == 0 )); then
-                printf "with no skips in a time of ${quiz_duration} seconds.\n "
-            elif (($skip >= 1)); then
-                printf "with ${skip} skips in a time of ${quiz_duration} seconds.\n"
+                printf "with no skips in a time of %s seconds.\n " "$quiz_duration"
+            elif (( skip >= 1)); then
+                printf "with %s skips in a time of %s seconds.\n" "$skip" "$quiz_duration"
             fi
         fi
     fi
@@ -96,7 +95,7 @@ function start_quiz {
         current_question="${question_key[$current_index]}"
         current_answer="${answer_key[$current_index]}"
 
-        printf "(${q_count}) ${current_question}? "
+        printf "(%s) %s ? " "$q_count" "$current_question"
         echo -e -n "${GREEN}"
         read response
         echo -e -n "${NC}"
@@ -104,7 +103,7 @@ function start_quiz {
         shopt -s nocasematch
             case $response in 
             "$current_answer") 
-                printf "${GREEN}Awesome! That's the correct answer.${NC} " 
+                printf '%b' "${GREEN}Awesome! That's the correct answer.${NC} " 
                 (( correct++ ))
                 check_quiz_end
             ;; 
@@ -117,7 +116,7 @@ function start_quiz {
                 printf "Skipping question.."
                 if (( skip >= 3 ))
                 then 
-                    printf "You have skipped ${skip} times now.\n"
+                    printf "You have skipped %s times now.\n" "$skip"
                 fi
                 check_quiz_end
             ;;
@@ -129,11 +128,11 @@ function start_quiz {
                     (( wrong++ ))
                         if (( no_response > 1 ))
                         then
-                            printf "You have ${no_response} blank responses so far. \n"   
+                            printf "You have %s blank responses so far. \n" "$no_response"
                         fi
                 else
                     (( wrong++ ))
-                        printf "${RED}That is incorrect...${NC}\n\n"
+                        printf '%b' "${RED}That is incorrect...${NC}\n\n"
                 fi
                 check_quiz_end
             ;;
