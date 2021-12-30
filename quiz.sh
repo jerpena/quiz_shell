@@ -91,14 +91,14 @@ function start_quiz {
     do
         (( q_count++ ))
         (( q_index++ ))
-        current_index=$( echo "${shuffled_order[$q_index]}")
+        current_index="${shuffled_order[$q_index]}"
         current_question="${question_key[$current_index]}"
         current_answer="${answer_key[$current_index]}"
 
-        printf "(%s) %s ? " "$q_count" "$current_question"
-        echo -e -n "${GREEN}"
-        read response
-        echo -e -n "${NC}"
+        printf "(%s) %b\nAnswer> " "$q_count" "$current_question"
+        printf '%b' "${GREEN}"
+        read -r response
+        printf '%b' "${NC}"
         # disregard case in answer
         shopt -s nocasematch
             case $response in 
@@ -123,12 +123,12 @@ function start_quiz {
             *) 
                 if [[ -z ${response} ]]
                 then
-                    printf "You didn't provide an answer! "
+                    printf '%b' "You didn't provide an answer! Counting this one as ${RED}incorrect${NC}\n"
                     (( no_response++ ))
                     (( wrong++ ))
                         if (( no_response > 1 ))
                         then
-                            printf "You have %s blank responses so far. \n" "$no_response"
+                            printf '%b' "You have ${RED}$no_response${NC} blank responses so far.\n" 
                         fi
                 else
                     (( wrong++ ))
