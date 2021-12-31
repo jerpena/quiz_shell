@@ -14,4 +14,4 @@ Example
 this is my first question|this is my answer
 ```
 
-**If you find any bugs, create an issue please.**
+**If you find any bug please create an issue.**
