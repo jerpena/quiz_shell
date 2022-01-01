@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
-# colors
-RED='\033[0;31m'
-PROMPT_GREEN=$'\001\033[0;32m\002'
-GREEN='\033[0;32m'
-NC='\033[0m'
+# CONSTANTS
+readonly RED='\033[0;31m'
+readonly READ_GREEN=$'\001\033[0;32m\002'
+readonly GREEN='\033[0;32m'
+readonly NC='\033[0m'
+readonly QUIZ_DIR=(quiz_keys/*)
 
-# variables
-quiz_dir=(quiz_keys/*)
 question_key=()
 answer_key=()
 q_index=-1
@@ -15,7 +14,13 @@ correct=0
 wrong=0
 no_response=0
 skip=0
-q_started=0
+q_started=0 # set in start_quiz case statement
+quiz_file="" # set in load_quiz_files
+target_questions=0 # set in load_quiz_files
+
+sleeper() {
+    read -rt "$1" <> <(:) || :
+}
 
 load_quiz_files() {
     # loop through all lines of quiz file and split keys into arrays
@@ -28,13 +33,13 @@ load_quiz_files() {
     target_questions=$(wc -l < "$quiz_file" | xargs)
 }
 
-function display_header {
+display_header() {
     clear -x
     printf '%b' "\nQUIZ SHELL\n"
     printf '%.s─' $(seq 1 "$(tput cols)")
 }
 
-function display_help {
+display_help() {
     clear -x
     display_header
     printf "If using the included quizzes, separate your answers that have multiple parts with a comma(,) and a space( ).\n"
@@ -49,52 +54,52 @@ function display_help {
     fi
 }
 
-function display_menu {
+display_menu() {
     printf '%b' '(h)help  (q)quit\n\n'
-    printf 'Choose your quiz below:\n'
+    printf 'Below are the available quizzes:\n'
     # print menu based on files in quiz directory
-    for i in "${!quiz_dir[@]}"; do 
-        printf "%d) %s\n" "$i" "${quiz_dir[i]#quiz_keys/}"
+    for i in "${!QUIZ_DIR[@]}"; do 
+        printf "%d) %s\n" "$i" "${QUIZ_DIR[i]#quiz_keys/}"
         (( i++ ))
     done
-    local arr_len="${#quiz_dir[@]}"
+    local arr_len="${#QUIZ_DIR[@]}"
     (( arr_len-- )) # subtract 1 from array arr_length for case statement below
-    local prompt="Check an option (again to uncheck, ENTER when done): "
+    local prompt="Choose your quiz: "
     local index
-    read -rep "${prompt}" index 
+    read -rep "${prompt}${READ_GREEN}" index 
+    printf '%b' "${NC}"
     case "${index}" in 
             "h") display_help; [[ -z "${quiz_file}" ]] && display_menu 
                 ;;
             "q") exit 100
                 ;;
-            (*[0-"${arr_len}"]*) load_quiz_files "${quiz_dir["${index}"]}" 
+            (*[0-"${arr_len}"]*) load_quiz_files "${QUIZ_DIR["${index}"]}" 
                 ;;
             ("" | *[!0-"${arr_len}"]*) printf '%b' "Invalid selection\n"
-                    read -rt 1 </dev/tty 3<&- 3<&0 <&3
+                    sleeper .5
                     display_header
                     display_menu
                 ;;
     esac
 }
 
-function shuffle_questions {
+shuffle_questions() {
     local i=0
-    until (( i == target_questions ))
-    do
+    until (( i == target_questions )); do
         q_order+=( "${i}" )
         (( i++ ))
     done
     mapfile -t shuffled_order <<< "$( shuf -n "${target_questions}" -e "${q_order[@]}" )"
 }
 
-function check_quiz_end {
+check_quiz_end() {
     if (( q_count < target_questions )); then 
-        read -rt 1 </dev/tty 3<&- 3<&0 <&3
+        sleeper 1
     elif (( q_count == target_questions )); then 
         exit 100
     fi
 }
-function start_quiz {
+start_quiz() {
     until (( q_count == target_questions ))
     do
         [[ "${q_started}" -ne 1 ]] && display_header
@@ -106,7 +111,7 @@ function start_quiz {
         current_answer="${answer_key["${current_index}"]}"
 
         printf "(%s) %b\n" "${q_count}" "${current_question}"
-        read -rp "Answer> ${PROMPT_GREEN}" -e response
+        read -rep "Answer> ${READ_GREEN}" response
         printf '%b' "${NC}"
         # disregard case in answer
         shopt -s nocasematch
@@ -150,12 +155,10 @@ function start_quiz {
 }
 
 display_scorecard() {
-    printf '%b' "${NC}"
+    printf '%b' "${NC}\n"
     [[ -z "${quiz_file}" ]] && exit 0
-    printf '%b' "\n"
     display_header
-    printf "Quiz has ended! Let's see how you did..\n\n"
-    read -rt 1 </dev/tty 3<&- 3<&0 <&3
+    printf "Scorecard\n"
     quiz_duration=$(( SECONDS - quiz_timer))
     if (( correct == target_questions )); then
         printf "\nAwesome! You got them all right in %s seconds.\n\n" "${quiz_duration}"
@@ -172,13 +175,13 @@ display_scorecard() {
         if (( skip == 0 )); then
             printf "with no skips in a time of %s seconds.\n " "${quiz_duration}"
         elif (( skip >= 1)); then
-            printf "with %s skips in a time of %s seconds.\n" "${skip}" "${quiz_duration}"
+            printf "with %s skips in a time of %s seconds.\n\n" "${skip}" "${quiz_duration}"
         fi
     fi
     exit 0
 }
-
-trap '[[ $? -eq 100 || 2 ]] && display_scorecard' EXIT
+trap 'exit 100' INT
+trap '[[ $? -eq 100 ]] && display_scorecard' EXIT
 display_header
 display_menu
 shuffle_questions
