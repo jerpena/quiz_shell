@@ -42,7 +42,7 @@ display_header() {
 display_help() {
     clear -x
     display_header
-    printf "If using the included quizzes, separate your answers that have multiple parts with a comma(,) and a space( ).\n"
+    printf "If using the included quizzes, separate your answers that have multiple parts with a comma(,) and a space( ).\n" | fold -s
     printf '%b' "Example: ${GREEN}for, while, until${NC}\n"
     if (( q_started == 1 )); then 
         printf "\n"
@@ -110,7 +110,7 @@ start_quiz() {
         current_question="${question_key["${current_index}"]}"
         current_answer="${answer_key["${current_index}"]}"
 
-        printf "(%s) %b\n" "${q_count}" "${current_question}"
+        printf "(%s) %b\n" "${q_count}" "${current_question}" | fold -s
         read -rep "Answer> ${READ_GREEN}" response
         printf '%b' "${NC}"
         # disregard case in answer
