@@ -4,6 +4,6 @@ My current directory is /home/user/ and I need to get to /var/log. What is the c
 What components make up a "while" loop in bash scripting|while, do, done
 Which command would create an alias the_answer to call the script myscript.sh with an argument of 42|alias the_answer='./myscript.sh 42'
 What syntax is used for "greater than" in bash scripting|-gt
-Fill in the character to print 'Hello world!' to the terminal.\n\nphrase='Hello world!'\necho ___phrase\n\nAnswer:|$
+Fill in the character to print 'Hello world!' to the terminal.\n\nphrase='Hello world!'\necho ___phrase\n\n|$
 What components make up a conditional in bash scripting|if, then, elif, else, fi
 What command is used to get input from the user|read
