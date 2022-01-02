@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # CONSTANTS
-readonly RED='\033[0;31m'
-readonly READ_GREEN=$'\001\033[0;32m\002'
-readonly GREEN='\033[0;32m'
+readonly RED='\033[38;5;202m'
+readonly READ_GREEN=$'\001\033[38;5;10m\002'
+readonly GREEN='\033[38;5;10m'
 readonly NC='\033[0m'
 readonly QUIZ_DIR=(quiz_keys/*)
 
@@ -19,7 +19,7 @@ quiz_file="" # set in load_quiz_files
 target_questions=0 # set in load_quiz_files
 
 sleeper() {
-    read -rt "$1" <> <(:) || :
+    read -rt "$1"
 }
 
 load_quiz_files() {
@@ -73,7 +73,7 @@ display_menu() {
                 ;;
             "q") exit 100
                 ;;
-            (*[0-"${arr_len}"]*) load_quiz_files "${QUIZ_DIR["${index}"]}" 
+            (*[0-"${arr_len}"] ) load_quiz_files "${QUIZ_DIR["${index}"]}" 
                 ;;
             ("" | *[!0-"${arr_len}"]*) printf '%b' "Invalid selection\n"
                     sleeper .5
@@ -95,7 +95,8 @@ shuffle_questions() {
 check_quiz_end() {
     if (( q_count < target_questions )); then 
         sleeper 1
-    elif (( q_count == target_questions )); then 
+    elif (( q_count == target_questions )); then
+        sleeper 1
         exit 100
     fi
 }
@@ -110,7 +111,7 @@ start_quiz() {
         current_question="${question_key["${current_index}"]}"
         current_answer="${answer_key["${current_index}"]}"
 
-        printf "(%s) %b\n" "${q_count}" "${current_question}" | fold -s
+        printf "(%s) %b\n" "${q_count}" "${current_question}"
         read -rep "Answer> ${READ_GREEN}" response
         printf '%b' "${NC}"
         # disregard case in answer
@@ -152,36 +153,40 @@ start_quiz() {
             esac
         check_quiz_end
     done
-}
+}                       #45 in sc with single digit on timer.
 
 display_scorecard() {
     printf '%b' "${NC}\n"
     [[ -z "${quiz_file}" ]] && exit 0
+    quiz_duration=$(( SECONDS - quiz_timer))s
+    #load fillers for table - SC=13 fill , QF=4 fill, TT= 7 Fill
+    local single_fill="\xe2\x80\x87"
+    local i=0
+    local score=${single_fill}$((200 * "${correct}"/"${target_questions}" -  100 * "${correct}"/"${target_questions}" ))%${single_fill}
+    local header_left="SCORECARD────────────────────────────────────"
+
+    # if quiz_duration is greater than 2 digits, remove characters from the end of header_left
+    if [[ "${#quiz_duration}" -gt 2 ]]; then
+        local num_to_remove=$(( ${#quiz_duration} - 2 ))
+        header_left="${header_left::-${num_to_remove}}"
+    fi 
+
+    local score_table=('| Total Questions | Correct | Incorrect | No Response | Skipped | Score |'
+        '| :-- | :--: | :--: | :--: | :--: | --: |'
+        "| ${target_questions} | ${correct} | ${wrong} | ${no_response} | ${skip} | ${score} |")
+    readonly score_table
+
+    local table_header=("| ${header_left} | Quiz: ${quiz_file#quiz_keys/} | Time: ${quiz_duration} |")
+    readonly table_header
+
     display_header
-    printf "Scorecard\n"
-    quiz_duration=$(( SECONDS - quiz_timer))
-    if (( correct == target_questions )); then
-        printf "\nAwesome! You got them all right in %s seconds.\n\n" "${quiz_duration}"
-    elif (( no_response == target_questions )); then 
-        printf "\nYou gave %s blank responses.\n\n" "${no_response}"                
-    elif (( wrong ==  target_questions )); then
-        printf "\nWomp Womp, You got them all wrong in %s seconds.\n\n" "${quiz_duration}"
-    elif (( skip ==  target_questions )); then 
-        printf "\nYou skipped all the questions.. uhhh?\n\n"             
-    else
-        printf "\nOut of (%s questions), you got " "${target_questions}"
-        (( wrong > 0 )) && printf '%b' "${RED}(${wrong} wrong)${NC} and " 
-        (( correct > 0 )) && printf '%b' "${GREEN}(${correct} correct)${NC} "
-        if (( skip == 0 )); then
-            printf "with no skips in a time of %s seconds.\n " "${quiz_duration}"
-        elif (( skip >= 1)); then
-            printf "with %s skips in a time of %s seconds.\n\n" "${skip}" "${quiz_duration}"
-        fi
-    fi
-    exit 0
+    #Available colors: MAGENTA, CYAN, YELLOW, GREEN, RED, BLUE
+    ./table_gen.sh "${table_header[@]}" 'color:CYAN' 
+    ./table_gen.sh "${score_table[@]}" 
 }
+
 trap 'exit 100' INT
-trap '[[ $? -eq 100 ]] && display_scorecard' EXIT
+trap '[[ $? -eq 100 ]] && display_scorecard' EXIT 
 display_header
 display_menu
 shuffle_questions
